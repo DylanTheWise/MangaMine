@@ -1,3 +1,6 @@
+#Ver 0.1
+#Authors: Dylan Wise & Zach Almon
+
 import urllib.request
 import re
 import os
