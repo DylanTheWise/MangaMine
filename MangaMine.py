@@ -166,9 +166,6 @@ def main():
                         if isFirstLoopPage == True:
                             determineAmountOfPages = re.findall('<option value="+(.*?)\</option>', str(urllibHTML))
 
-                        #If on the first loop we look at the very last number in the list
-                        #On every loop but the fist look at the second to last position in the list
-
                         if len(determineAmountOfPages) == imageLocation - 1:
                             break
 
