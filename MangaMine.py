@@ -1,40 +1,41 @@
-#Ver 0.1
+#Ver. 0.2
 #Authors: Dylan Wise & Zach Almon
-
 import urllib.request
 import re
 import os
 
-def findURLType(URLList):
-    URLType = []
+#def findURLType(URLList):
+    #URLType = []
     
     #Looks through the list of URLs for each chapter and determines its URL type
     #MangaPanda has two types of URLs, one that leads with 3 numbers sperated by
     #a dash and another that only has the chapter number.
-    for i in range(len(URLList)):
+
+    #for i in range(len(URLList)):
                                  #locates 3 numbers seperated by dashes ex. 42-87-24
-        URLString = re.findall('((?:\d)+)([-/.])((?:\d)+)([-/.])((?:\d)+)', URLList[i])
+    #    URLString = re.findall('((?:\d)+)([-/.])((?:\d)+)([-/.])((?:\d)+)', URLList[i])
 
-        if len(URLString) == 0:
-            URLType.append(0)
+    #    if len(URLString) == 0:
+    #        URLType.append(0)
 
-        else:
-            URLType.append(1)
+    #    else:
+    #        URLType.append(1)
 
-    return URLType
+    #return URLType
 
-def determineChapterNames(allChaps, listOfURLTypes):
+def determineChapterNames(allChaps):
     chapterNames = []
 
     #loops chapter URLs to determine chapter number for both types of URLs
-    for i in range(len(listOfURLTypes)):
+    for i in range(len(allChaps)):
         chapterNum = re.findall('((?:\d)+)', allChaps[i])
+        chapterNames.append(chapterNum[-1])
 
-        if listOfURLTypes[i] == 0:
-            chapterNames.append(chapterNum[-1])
+        #if listOfURLTypes[i] == 0:
+        #    chapterNames.append(chapterNum[-1])
 
-        if listOfURLTypes[i] == 1:
-            chapterNames.append(chapterNum[-1])
+        #if listOfURLTypes[i] == 1:
+        #    chapterNames.append(chapterNum[-1])
 
     return chapterNames
 
@@ -123,8 +124,8 @@ def main():
 
             os.chdir(directoryName)
 
-            listOfURLTypes = findURLType(allChaps)
-            chapterNames = determineChapterNames(allChaps, listOfURLTypes)
+            #listOfURLTypes = findURLType(allChaps)
+            chapterNames = determineChapterNames(allChaps)
 
             for i in range(len(allChaps)):
                 chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
@@ -152,31 +153,41 @@ def main():
                         #Looks at page URLs for any and all sequences of numbers
                         nextChapDetermine = re.findall('((?:\d)+)', chapURL)
 
+                        urllibHTML = urllib.request.urlopen(chapURL).read()
+
+                        if isFirstLoopPage == True:
+                            determineAmountOfPages = re.findall('<option value="+(.*?)\</option>', str(urllibHTML))
+
                         #If on the first loop we look at the very last number in the list
                         #On every loop but the fist look at the second to last position in the list
-                        if listOfURLTypes[i] == 0:
-                            if isFirstLoopPage == 1:
-                                if nextChapDetermine[-1] != chapterNames[i]:
-                                    break
 
-                            else:
-                                if nextChapDetermine[-2] != chapterNames[i]:
-                                    break
+                        if len(determineAmountOfPages) == imageLocation - 1:
+                            break
+
+                        #if listOfURLTypes[i] == 0:
+                        #    if isFirstLoopPage == True:
+                        #        if nextChapDetermine[-1] != chapterNames[i]:
+                        #            break
+
+                        #    else:
+                        #        if len(determineAmountOfPages) == imageLocation:
+                        #            if nextChapDetermine[-1] != chapterNames[i]:
+                        #                break
+
+                        #        if nextChapDetermine[-2] != chapterNames[i]:
+                        #            break
 
 
-                        if listOfURLTypes[i] == 1:
-                            if nextChapDetermine[-1] != chapterNames[i]:
-                                break
-
-                        urllibHTML = urllib.request.urlopen(chapURL).read()
+                        #if listOfURLTypes[i] == 1:
+                        #    if nextChapDetermine[-1] != chapterNames[i]:
+                        #        break
 
                         #Checks the number of files in directory in comparison to the number of images in the chapter
                         #If the number is the same the assumption is made that all images have been downloaded
                         if isFirstLoopPage == True:
                             isFirstLoopPage = False
-                            determineIfAlreadyDownloaded = re.findall('<option value="+(.*?)\</option>', str(urllibHTML))
                             numOfFileInCWD = len([name for name in os.listdir('.') if os.path.isfile(name)])
-                            if numOfFileInCWD == len(determineIfAlreadyDownloaded):
+                            if numOfFileInCWD == len(determineAmountOfPages):
                                 break
                         
                         #grabs both the next page URL and the URL for the image on the current page
@@ -202,6 +213,7 @@ def main():
                     #Probably need to do more with this error
                     except:
                         print("Invalid URL Error!")
+                        return
             
             while 1:
                 print('Do you wish to download another manga?[y/n]')
