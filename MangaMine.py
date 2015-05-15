@@ -1,4 +1,4 @@
-#Ver. 0.2.1
+#Ver. 0.2.2
 #Authors: Dylan Wise & Zach Almon
 
 import urllib.request
@@ -95,38 +95,146 @@ def main():
             for i in range(len(allChaps)):
                 chapterNum = re.findall('((?:\d)+)', allChaps[i])
                 chapterNames.append(chapterNum[-1])
+            
+            fullDownload = False
+            while 1:
+                print('Do you wish to download the entire manga?[y/n]')
+                continueChoiceFullDownload = input('')
+
+                if continueChoiceFullDownload == 'y':
+                    fullDownload = True
+                    break
+
+                elif continueChoiceFullDownload == 'n':
+                    break
+
+                else:
+                    print('Invalid Option!')
 
             #Inquires the user if they wish to start from a specific chapter instead of downloading them all
             customStart = False
             chapterFound = False
             startLocation = 0
-            while 1:
-                print('Do you wish to start download from a certain chapter?[y/n]')
-                continueChoice = input('')
 
-                if continueChoice == 'y':
-                    print('Please enter the chapter you wish to start from.')
-                    chapNum = input('')
+            if fullDownload == False:
+                while 1:
+                    print('Do you wish to start download from a certain chapter?[y/n]')
+                    continueChoiceCustomChap = input('')
 
-                    for i in range(len(chapterNames)):
-                        if chapNum == chapterNames[i]:
-                            chapterFound = True
-                            customStart = True
-                            startLocation = i
+                    if continueChoiceCustomChap == 'y':
+                        print('Please enter the chapter you wish to start from.')
+                        chapNum = input('')
 
-                    if chapterFound == False:
-                        print('Invalid chapter number! Maybe the chapter is missing?')
-                        print()
+                        for i in range(len(chapterNames)):
+                            if chapNum == chapterNames[i]:
+                                chapterFound = True
+                                customStart = True
+                                startLocation = i
 
-                    else:
+                        if chapterFound == False:
+                            print('Invalid chapter number! Maybe the chapter is missing?')
+                            print()
+
+                        else:
+                            break
+
+                    elif continueChoiceCustomChap == 'n':
                         break
 
-                elif continueChoice == 'n':
-                    break
+                    else:
+                        print('Invalid Option!')
+                        print()
 
-                else:
-                    print('Invalid Option!')
-                    print()
+            singleChapter = False
+            validRange = False
+            firstChap = 0
+            lastChap = 0
+            onlyChap = 0
+            if customStart == False and fullDownload == False:
+                while 1:
+                    print('Do you wish to download a specific range of chapters? (or a single chapter?)')
+                    print('[y/n]')
+                    continueChoiceRangeChap = input('')
+
+                    if continueChoiceRangeChap == 'y':
+                        print('Please enter the range (in format 34-65) with no spaces or a single number for') 
+                        print('one chapter.')
+                        chapterRange = input('')
+
+                        #looks for the patter 23-32, the numbers can be of any size
+                        rangeString = re.findall('((?:\d+)[-/.](?:\d+))', chapterRange)
+                        if len(rangeString) == 0:
+                            #if that pattern is not detected it looks for a single number of any size
+                            singleString = re.findall('((?:\d)+)', chapterRange)
+
+                            if len(singleString) == 0:
+                                print('That is an invalid range!')
+                                print()
+
+                            elif len(singleString) == 1:
+                                for i in range(len(chapterNames)):
+                                    if singleString[0] == chapterNames[i]:
+                                        singleChapter = True
+                                        onlyChap = i
+
+                            else:
+                                print('That is an invalid range!')
+                                print()
+
+                        elif len(rangeString) == 1:
+                            #if pattern is valid look for the individual numbers
+                            startAndEnd = re.findall('((?:\d)+)', rangeString[0])
+
+                            if int(startAndEnd[1]) - int(startAndEnd[0]) > 0:
+                                firstChapFound = False
+                                lastChapFound = False
+
+                                #we can always assume that the length of startAndEnd is 2
+                                for i in range(len(startAndEnd)):
+                                    for k in range(len(chapterNames)):
+
+                                        if startAndEnd[i] == chapterNames[k]:
+
+                                            if i == 0:
+                                                firstChap = k
+                                                firstChapFound = True
+
+                                            if i == 1:
+                                                lastChap = k
+                                                lastChapFound = True
+
+                                if firstChapFound == True and lastChapFound == True:
+                                    validRange = True
+
+                            #if the range is just one number (ex. 61-61) we only download that chapter
+                            elif int(startAndEnd[1]) - int(startAndEnd[0]) == 0:
+
+                                for i in range(len(chapterNames)):
+                                    if startAndEnd[0] == chapterNames[i]:
+                                        singleChapter = True
+                                        onlyChap = i
+
+                            else:
+                                print('That is an invalid range!')
+                                print()
+
+                        else:
+                            print('That is an invalid range!')
+                            print()
+
+                        if singleChapter == True or validRange == True:
+                            break
+
+                        else:
+                            print('That is an invalid range!')
+                            print('')
+
+                    elif continueChoiceRangeChap == 'n':
+                        break
+
+                    else:
+                        print('Invalid Option!')
+                        print()
 
             #If the user chose a custom start location pop all chapters before off
             if customStart == True:
@@ -134,85 +242,107 @@ def main():
                     allChaps.pop(0)
                     chapterNames.pop(0)
 
-            for i in range(len(allChaps)):
-                chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
+            if singleChapter == True:
+                for i in range(onlyChap):
+                    allChaps.pop(0)
+                    chapterNames.pop(0)
 
-                try: 
-                    os.makedirs(chapDirectoryName)    
+                for i in range(len(allChaps)-1):
+                    allChaps.pop(-1)
+                    chapterNames.pop(-1)
 
-                except OSError:                    
-                    if not os.path.isdir(chapDirectoryName):
-                        raise
+            if validRange == True:
+                for i in range(firstChap):
+                    allChaps.pop(0)
+                    chapterNames.pop(0)
 
-                os.chdir(chapDirectoryName)
+                for i in range(len(allChaps)-(lastChap-firstChap)-1):
+                    allChaps.pop(-1)
+                    chapterNames.pop(-1)
 
-                #There are some special cases associated with the first loop through the chapter
-                isFirstLoopPage = True
 
-                chapURL = "http://www.mangapanda.com" + allChaps[i]
-                print("Downloading Chapter", str(chapterNames[i]))
+            if fullDownload == True or customStart == True or singleChapter == True or validRange == True:
 
-                imageLocation = 0
+                for i in range(len(allChaps)):
 
-                while 1:
-                    try:
-                        imageLocation += 1
+                    chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
 
-                        #Looks at page URLs for any and all sequences of numbers
-                        nextChapDetermine = re.findall('((?:\d)+)', chapURL)
+                    try: 
+                        os.makedirs(chapDirectoryName)    
 
-                        urllibHTML = urllib.request.urlopen(chapURL).read()
+                    except OSError:                    
+                        if not os.path.isdir(chapDirectoryName):
+                            raise
 
-                        if isFirstLoopPage == True:
-                            determineAmountOfPages = re.findall('<option value="+(.*?)\</option>', str(urllibHTML))
+                    os.chdir(chapDirectoryName)
 
-                        if len(determineAmountOfPages) == imageLocation - 1:
-                            break
+                    #There are some special cases associated with the first loop through the chapter
+                    isFirstLoopPage = True
 
-                        #Checks the number of files in directory in comparison to the number of images in the chapter
-                        #If the number is the same the assumption is made that all images have been downloaded
-                        if isFirstLoopPage == True:
-                            isFirstLoopPage = False
-                            numOfFileInCWD = len([name for name in os.listdir('.') if os.path.isfile(name)])
-                            if numOfFileInCWD == len(determineAmountOfPages):
+                    chapURL = "http://www.mangapanda.com" + allChaps[i]
+                    print("Downloading Chapter", str(chapterNames[i]))
+
+                    imageLocation = 0
+
+                    while 1:
+                        try:
+                            imageLocation += 1
+
+                            #Looks at page URLs for any and all sequences of numbers
+                            nextChapDetermine = re.findall('((?:\d)+)', chapURL)
+
+                            urllibHTML = urllib.request.urlopen(chapURL).read()
+
+                            if isFirstLoopPage == True:
+                                determineAmountOfPages = re.findall('<option value="+(.*?)\</option>', str(urllibHTML))
+
+                            if len(determineAmountOfPages) == imageLocation - 1:
                                 break
+
+                            #Checks the number of files in directory in comparison to the number of images in the chapter
+                            #If the number is the same the assumption is made that all images have been downloaded
+                            if isFirstLoopPage == True:
+                                isFirstLoopPage = False
+                                numOfFileInCWD = len([name for name in os.listdir('.') if os.path.isfile(name)])
+                                if numOfFileInCWD == len(determineAmountOfPages):
+                                    break
                         
-                        #grabs both the next page URL and the URL for the image on the current page
-                        URLandIMG = re.findall(r'<div id="imgholder">+(.*?)\" alt=+', str(urllibHTML))
-                        nextPageURL = re.findall(r'<a href="+(.*?)\">', URLandIMG[0])
-                        imageURL = re.findall(r'src="+(.*?)\.jpg', URLandIMG[0])
+                            #grabs both the next page URL and the URL for the image on the current page
+                            URLandIMG = re.findall(r'<div id="imgholder">+(.*?)\" alt=+', str(urllibHTML))
+                            nextPageURL = re.findall(r'<a href="+(.*?)\">', URLandIMG[0])
+                            imageURL = re.findall(r'src="+(.*?)\.jpg', URLandIMG[0])
                         
-                        imageName = "Page " + str(imageLocation) + ".jpg"
-                        fileExists = os.path.isfile(imageName)
-                        print("Downloading Page", imageLocation) 
+                            imageName = "Page " + str(imageLocation) + ".jpg"
+                            fileExists = os.path.isfile(imageName)
+                            print("Downloading Page", imageLocation) 
 
 
-                        #If file does not already exist, opens a file, writes image binary data to it and closes
-                        if fileExists == False:
-                            rawImage = urllib.request.urlopen(imageURL[0] + ".jpg").read()
-                            fout = open(imageName, 'wb')       
-                            fout.write(rawImage)                          
-                            fout.close()
+                            #If file does not already exist, opens a file, writes image binary data to it and closes
+                            if fileExists == False:
+                                rawImage = urllib.request.urlopen(imageURL[0] + ".jpg").read()
+                                fout = open(imageName, 'wb')       
+                                fout.write(rawImage)                          
+                                fout.close()
                         
-                        chapURL = "http://www.mangapanda.com" + nextPageURL[0]
+                            chapURL = "http://www.mangapanda.com" + nextPageURL[0]
 
-                    #Probably need to do more with this error
-                    except:
-                        print("Invalid URL Error!")
-                        return
+                        #Probably need to do more with this error
+                        except:
+                            print("Invalid URL Error!")
+                            return
             
-            while 1:
-                print('Do you wish to download another manga?[y/n]')
-                continueChoice = input('')
+                while 1:
+                    print('Do you wish to download another manga?[y/n]')
+                    continueChoice = input('')
 
-                if continueChoice == 'y':
-                    break
+                    if continueChoice == 'y':
+                        break
 
-                elif continueChoice == 'n':
-                    success = True
-                    break
+                    elif continueChoice == 'n':
+                        success = True
+                        break
 
-                else:
-                    print('Invalid Option!')
+                    else:
+                        print('Invalid Option!')
 
 main()
