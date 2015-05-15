@@ -4,6 +4,8 @@ Ver. 0.1
 
 MangaPanda support is added, very fisrt commit, very likely has some bugs. 
 
+______________________________________________________________________________________________________________________
+
 
 Ver. 0.2
 
@@ -12,6 +14,8 @@ Ver. 0.2
 Removed some redundancy and now unnecessary functions, added return to expection in while loop to avoid infinite
 loops, and trimmed while loop by removing now unnnecessary functions.
 
+______________________________________________________________________________________________________________________
+
 
 Ver. 0.2.1
 
@@ -19,6 +23,8 @@ Ver. 0.2.1
 
 Removed commented out code, added custom start location which gives the user the option to choose what chapter to
 start downloading on.
+
+______________________________________________________________________________________________________________________
 
 
 Ver. 0.2.2
