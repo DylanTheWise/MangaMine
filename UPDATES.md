@@ -17,5 +17,12 @@ Ver. 0.2.1
 
 5/15/15     2:41PM
 
-Removed commented out code, added custom start location which gives the user the option to choose what chpater to
+Removed commented out code, added custom start location which gives the user the option to choose what chapter to
 start downloading on.
+
+
+Ver. 0.2.2
+
+5/15/15     7:32PM
+
+Added support for downloading a specific range of chapters, or just a single chapter.
