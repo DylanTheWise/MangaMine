@@ -1,43 +1,9 @@
-#Ver. 0.2
+#Ver. 0.2.1
 #Authors: Dylan Wise & Zach Almon
+
 import urllib.request
 import re
 import os
-
-#def findURLType(URLList):
-    #URLType = []
-    
-    #Looks through the list of URLs for each chapter and determines its URL type
-    #MangaPanda has two types of URLs, one that leads with 3 numbers sperated by
-    #a dash and another that only has the chapter number.
-
-    #for i in range(len(URLList)):
-                                 #locates 3 numbers seperated by dashes ex. 42-87-24
-    #    URLString = re.findall('((?:\d)+)([-/.])((?:\d)+)([-/.])((?:\d)+)', URLList[i])
-
-    #    if len(URLString) == 0:
-    #        URLType.append(0)
-
-    #    else:
-    #        URLType.append(1)
-
-    #return URLType
-
-def determineChapterNames(allChaps):
-    chapterNames = []
-
-    #loops chapter URLs to determine chapter number for both types of URLs
-    for i in range(len(allChaps)):
-        chapterNum = re.findall('((?:\d)+)', allChaps[i])
-        chapterNames.append(chapterNum[-1])
-
-        #if listOfURLTypes[i] == 0:
-        #    chapterNames.append(chapterNum[-1])
-
-        #if listOfURLTypes[i] == 1:
-        #    chapterNames.append(chapterNum[-1])
-
-    return chapterNames
 
 def main():
     success = False
@@ -49,7 +15,7 @@ def main():
     print('manga you wish to download')
     print('Ex: http://www.mangapanda.com/372/seto-no-hanayome.html ')
 
-    while(success == False):
+    while success == False:
         downloadManga = True
 
         print()
@@ -124,8 +90,49 @@ def main():
 
             os.chdir(directoryName)
 
-            #listOfURLTypes = findURLType(allChaps)
-            chapterNames = determineChapterNames(allChaps)
+            #loops chapter URLs to determine chapter number for both types of URLs
+            chapterNames = []
+            for i in range(len(allChaps)):
+                chapterNum = re.findall('((?:\d)+)', allChaps[i])
+                chapterNames.append(chapterNum[-1])
+
+            #Inquires the user if they wish to start from a specific chapter instead of downloading them all
+            customStart = False
+            chapterFound = False
+            startLocation = 0
+            while 1:
+                print('Do you wish to start download from a certain chapter?[y/n]')
+                continueChoice = input('')
+
+                if continueChoice == 'y':
+                    print('Please enter the chapter you wish to start from.')
+                    chapNum = input('')
+
+                    for i in range(len(chapterNames)):
+                        if chapNum == chapterNames[i]:
+                            chapterFound = True
+                            customStart = True
+                            startLocation = i
+
+                    if chapterFound == False:
+                        print('Invalid chapter number! Maybe the chapter is missing?')
+                        print()
+
+                    else:
+                        break
+
+                elif continueChoice == 'n':
+                    break
+
+                else:
+                    print('Invalid Option!')
+                    print()
+
+            #If the user chose a custom start location pop all chapters before off
+            if customStart == True:
+                for i in range(startLocation):
+                    allChaps.pop(0)
+                    chapterNames.pop(0)
 
             for i in range(len(allChaps)):
                 chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
@@ -145,11 +152,12 @@ def main():
                 chapURL = "http://www.mangapanda.com" + allChaps[i]
                 print("Downloading Chapter", str(chapterNames[i]))
 
-                imageLocation = 1
-                allImagesFound = False
+                imageLocation = 0
 
-                while allImagesFound == False:
+                while 1:
                     try:
+                        imageLocation += 1
+
                         #Looks at page URLs for any and all sequences of numbers
                         nextChapDetermine = re.findall('((?:\d)+)', chapURL)
 
@@ -163,24 +171,6 @@ def main():
 
                         if len(determineAmountOfPages) == imageLocation - 1:
                             break
-
-                        #if listOfURLTypes[i] == 0:
-                        #    if isFirstLoopPage == True:
-                        #        if nextChapDetermine[-1] != chapterNames[i]:
-                        #            break
-
-                        #    else:
-                        #        if len(determineAmountOfPages) == imageLocation:
-                        #            if nextChapDetermine[-1] != chapterNames[i]:
-                        #                break
-
-                        #        if nextChapDetermine[-2] != chapterNames[i]:
-                        #            break
-
-
-                        #if listOfURLTypes[i] == 1:
-                        #    if nextChapDetermine[-1] != chapterNames[i]:
-                        #        break
 
                         #Checks the number of files in directory in comparison to the number of images in the chapter
                         #If the number is the same the assumption is made that all images have been downloaded
@@ -208,7 +198,6 @@ def main():
                             fout.close()
                         
                         chapURL = "http://www.mangapanda.com" + nextPageURL[0]
-                        imageLocation += 1
 
                     #Probably need to do more with this error
                     except:
