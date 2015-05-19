@@ -41,4 +41,4 @@ Ver. 0.2.5
 5/19/15   |  12:33PM
 
 Added a basic search feature for MangaPanda. Currently case sensitive, the manga name needs to match the name 
-exactly as it is on the site for the search to work. 
+exactly as it is on the site for the search to work. Also ensured created directory names will use valid characters.
