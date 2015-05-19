@@ -32,3 +32,13 @@ Ver. 0.2.2
 5/15/15   |  7:32PM
 
 Added support for downloading a specific range of chapters, or just a single chapter.
+
+______________________________________________________________________________________________________________________
+
+
+Ver. 0.2.5
+
+5/19/15   |  12:33PM
+
+Added a basic search feature for MangaPanda. Currently case sensitive, the manga name needs to match the name 
+exactly as it is on the site for the search to work. 
