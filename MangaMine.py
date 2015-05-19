@@ -1,4 +1,4 @@
-#Ver. 0.2.2
+#Ver. 0.2.5
 #Authors: Dylan Wise & Zach Almon
 
 import urllib.request
@@ -8,6 +8,8 @@ import os
 def main():
     success = False
     currentDirectory = os.getcwd()
+    downloadMangaListOnce = False
+    searchAgain = False
 
     print('Currently MangaMine only supports MangaPanda.')
     print()
@@ -17,13 +19,109 @@ def main():
 
     while success == False:
         downloadManga = True
+        mangaFound = False
 
-        print()
-        print('Please enter the url of the manga you wish to download (or q to quit): ')
-        urlRequest = input('')
+        while 1:
+            if searchAgain == False:
+                print()
+                print('Do you wish to search for a manga or provide a link like the one above?')
+                print('[s]earch, [l]ink and [q]uit')
+                searchRequest = input('')
 
-        if urlRequest == 'q':
-            return 
+            if searchRequest == 's' or searchAgain == True:
+                mangaFound = False
+                tryLink = False
+                searchAgain = False
+
+                #to ensure we aren't repeatedly loading the same page of HTML this bool will trigger once per time the script is run
+                if downloadMangaListOnce == False:
+                    listOfLinks = []
+                    listOfNames = []
+                    downloadMangaListOnce = True
+
+                    allManga = urllib.request.urlopen('http://www.mangapanda.com/alphabetical').read()
+
+                    #grabs all manga starting with a particular letter, number or symbol
+                    mangasInAlphaBeta = re.findall(r'ul class=+(.*?)</ul>', str(allManga))
+
+                    #using regular patters from the text grabbed above seperates statments into links and names
+                    for i in range(len(mangasInAlphaBeta)):
+
+                        #the first item is the list is manga that start with a space which need to be handled differently 
+                        #from the rest
+                        if i == 0:
+                            linksInAlphaNumeric = re.findall(r'href="(.*?)"', mangasInAlphaBeta[i])
+                            for k in range(len(linksInAlphaNumeric)):
+                                listOfLinks.append(linksInAlphaNumeric[k])
+
+                            namesInAlphaNumeric = re.findall(r'> (.*?)</a>', mangasInAlphaBeta[i])
+                            for k in range(len(namesInAlphaNumeric)):
+                                listOfNames.append(namesInAlphaNumeric[k])
+
+                        else:
+                            linksInAlphaNumeric = re.findall(r'href="(.*?)"', mangasInAlphaBeta[i])
+                            for k in range(len(linksInAlphaNumeric)):
+                                listOfLinks.append(linksInAlphaNumeric[k])
+
+                            namesInAlphaNumeric = re.findall(r'<li>(.*?)</li>', mangasInAlphaBeta[i])
+                            for k in range(len(namesInAlphaNumeric)):
+                                tempNameList = re.findall(r'>(.*?)</a>', namesInAlphaNumeric[k])
+                                listOfNames.append(tempNameList[0])
+                          
+
+                #checks list created above for the particular manga stated below
+                print('What is the name of the Manga you wish to download? (Case sensitive!)')
+                potentialMangaName = input('')
+                for i in range(len(listOfNames)):
+                    if potentialMangaName == listOfNames[i]:
+                        mangaFound = True
+                        searchedMangaLink = listOfLinks[i]
+                        break
+
+                if mangaFound == True:
+                    print('Success! That manga exists on MangaPanda.')
+                    break
+
+                else:
+                    print('Error! That manga does not exist on MangaPanda!')
+                    while 1:
+                        print()
+                        print('Do you wish to [s]earch again or provide a [l]ink? (or [q]uit)')
+                        failSearchQuery = input('')
+
+                        if failSearchQuery == 's':
+                            searchAgain = True
+                            break
+
+                        elif failSearchQuery == 'l':
+                            tryLink = True
+                            break
+
+                        elif failSearchQuery == 'q':
+                            return
+
+                        else:
+                            print('Invalid Input!')
+
+            elif searchRequest == 'l':
+                break
+
+            else:
+                print('Invalid input!')
+
+            if tryLink == True:
+                break
+
+        if mangaFound == False:
+            print()
+            print('Please enter the url of the manga you wish to download or [q]uit: ')
+            urlRequest = input('')
+
+            if urlRequest == 'q':
+                return
+            
+        else:
+            urlRequest = 'http://www.mangapanda.com' + searchedMangaLink 
 
         #take the URL the user gave and cut off last five characters (.html)
         try:
@@ -39,47 +137,54 @@ def main():
         if downloadManga == True:
             allChaps = re.findall(r'<div class="chico_manga"></div>\\n<a href="+(.*?)\">+', str(urllibHTML))
 
-            numOfLoops = len(allChaps)
+            numOfChapLinks = len(allChaps)
             
             #However the 6 most recent chapters are also under the 'chico_manga' class
             #so it is necessary to pop those chapters off and if there are not a total
             #of 6 chapters in the manga we have special cases
-            if numOfLoops < 12:
+            if numOfChapLinks < 12:
 
-                if numOfLoops == 10:
-                    numOfLoops = 5
+                if numOfChapLinks == 10:
                     for i in range(5):
                         allChaps.pop(0)
                     
-                elif numOfLoops == 8:
-                    numOfLoops = 4
+                elif numOfChapLinks == 8:
                     for i in range(4):
                         allChaps.pop(0)
 
-                elif numOfLoops == 6:
+                elif numOfChapLinks == 6:
                     for i in range(3):
                         allChaps.pop(0)
 
-                elif numOfLoops == 4:
-                    numOfLoops = 2
+                elif numOfChapLinks == 4:
                     for i in range(2):
                         allChaps.pop(0)
 
-                elif numOfLoops == 2:
-                    numOfLoops = 1
+                elif numOfChapLinks == 2:
                     allChaps.pop(0)
 
                 else:
                     print('There was an error parsing the HTML!')
 
             else:
-                numOfLoops = numOfLoops - 6
                 for i in range(6):
                     allChaps.pop(0)
 
             #Rather conveniently, there is a class called 'aname' which contains the name of the manga
             grabName = re.findall(r'<h2 class="aname">+(.*?)\</h2>+', str(urllibHTML))
-            directoryName = currentDirectory + "\\" + str(grabName[0])
+
+            #some mangas contained characters in aname which cannot be used in windows directories
+            #these statements attempt to make said strings directory friendly
+            directorySafeName = grabName[0]
+            directorySafeName = directorySafeName.replace("/", " over ")
+            directorySafeName = directorySafeName.replace(":", "")
+            directorySafeName = directorySafeName.replace("?", "")
+            directorySafeName = directorySafeName.replace("+", "")
+            directorySafeName = directorySafeName.replace("\"","'")
+            directorySafeName = directorySafeName.replace("%", " Percent")
+            directorySafeName = directorySafeName.replace("<", "")   
+            directorySafeName = directorySafeName.replace(">", "")
+            directoryName = currentDirectory + "\\MangaPanda\\" + str(directorySafeName)
 
             try: 
                 os.makedirs(directoryName)    
@@ -161,7 +266,7 @@ def main():
                         print('one chapter.')
                         chapterRange = input('')
 
-                        #looks for the patter 23-32, the numbers can be of any size
+                        #looks for the pattern 23-32, the numbers can be of any size
                         rangeString = re.findall('((?:\d+)[-/.](?:\d+))', chapterRange)
                         if len(rangeString) == 0:
                             #if that pattern is not detected it looks for a single number of any size
