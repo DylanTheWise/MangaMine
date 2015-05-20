@@ -1,9 +1,13 @@
-#Ver. 0.2.5
+#Ver. 0.3.0
 #Authors: Dylan Wise & Zach Almon
 
 import urllib.request
 import re
 import os
+import platform
+import sys
+
+platformType = platform.system()
 
 def main():
     success = False
@@ -47,8 +51,7 @@ def main():
                     #using regular patters from the text grabbed above seperates statments into links and names
                     for i in range(len(mangasInAlphaBeta)):
 
-                        #the first item is the list is manga that start with a space which need to be handled differently 
-                        #from the rest
+                        #the first item is the list is manga that start with a space which need to be handled differently from the rest
                         if i == 0:
                             linksInAlphaNumeric = re.findall(r'href="(.*?)"', mangasInAlphaBeta[i])
                             for k in range(len(linksInAlphaNumeric)):
@@ -184,7 +187,12 @@ def main():
             directorySafeName = directorySafeName.replace("%", " Percent")
             directorySafeName = directorySafeName.replace("<", "")   
             directorySafeName = directorySafeName.replace(">", "")
-            directoryName = currentDirectory + "\\MangaPanda\\" + str(directorySafeName)
+
+            if platformType == 'Windows':
+                directoryName = currentDirectory + "\\MangaPanda\\" + str(directorySafeName)
+
+            else:
+                directoryName = currentDirectory + "/MangaPanda/" + str(directorySafeName)
 
             try: 
                 os.makedirs(directoryName)    
@@ -370,7 +378,11 @@ def main():
 
                 for i in range(len(allChaps)):
 
-                    chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
+                    if platformType == 'Windows':
+                        chapDirectoryName = directoryName + "\\Chapter " + str(chapterNames[i])
+
+                    else:
+                        chapDirectoryName = directoryName + "/Chapter " + str(chapterNames[i])
 
                     try: 
                         os.makedirs(chapDirectoryName)    
@@ -419,8 +431,14 @@ def main():
                         
                             imageName = "Page " + str(imageLocation) + ".jpg"
                             fileExists = os.path.isfile(imageName)
-                            print("Downloading Page", imageLocation) 
 
+                            #Old code that would put each page thats currently downloading on a new line
+                            #print("Downloading Page", imageLocation) 
+                            
+                            #New code that will overwrite each "Downloading Page #" with the next page 
+                            #and will eventually be overwrote by the "Downloading Chapter #"
+                            print("Downloading Page %d" % imageLocation, end="", flush=True)
+                            print("\r", end="", flush=True)
 
                             #If file does not already exist, opens a file, writes image binary data to it and closes
                             if fileExists == False:
