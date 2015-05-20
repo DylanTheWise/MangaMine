@@ -1,4 +1,4 @@
-Ver. 0.1
+Ver. 0.1.0
 
 5/13/15   |  7:40PM
 
@@ -7,7 +7,7 @@ MangaPanda support is added, very fisrt commit, very likely has some bugs.
 ______________________________________________________________________________________________________________________
 
 
-Ver. 0.2
+Ver. 0.2.0
 
 5/15/15   |  2:23AM
 
@@ -42,3 +42,13 @@ Ver. 0.2.5
 
 Added a basic search feature for MangaPanda. Currently case sensitive, the manga name needs to match the name 
 exactly as it is on the site for the search to work. Also ensured created directory names will use valid characters.
+
+______________________________________________________________________________________________________________________
+
+
+Ver. 0.3.0
+
+5/20/15   |  12:13PM
+
+Added Linux and Mac support. Changed the way outputting "Downloading Page #" works. Now each print statment overwrites
+the last via a carriage return to keep clutter down.
