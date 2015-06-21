@@ -51,4 +51,5 @@ Ver. 0.3.0
 5/20/15   |  12:13PM
 
 Added Linux and Mac support. Changed the way outputting "Downloading Page #" works. Now each print statment overwrites
-the last via a carriage return to keep clutter down.
+the last via a carriage return to keep clutter down. Changed name to MangaMine (MangaPanda).py in order to keep Manga
+websites seperated until they are all fleshed out, will combine later.
